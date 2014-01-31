@@ -61,14 +61,25 @@ start_command() {
 # Only lines containing an equal sign are read, which means you can add comments.
 # Preferably shell-style comments so that your editor print them like shell scripts.
 
+readenvfile() {
+  if [ -f $1 ]; then
+    while read line || [ -n "$line" ]; do
+      if [[ "$line" == *=* ]]; then
+        eval "export $line"
+      fi
+    done < "$1"
+  fi
+}
+
+# Attempt to read the default .env file
 ENV_FILE=${2:-'.env'}
-if [ -f $ENV_FILE ]; then
-  while read line || [ -n "$line" ]; do
-    if [[ "$line" == *=* ]]; then
-      eval "export $line"
-    fi
-  done < "$ENV_FILE"
-fi
+readenvfile $ENV_FILE;
+
+# Read any other arguments as other .env files.
+for envfile in ${@:3}
+do
+  readenvfile $envfile
+done
 
 # ## Reading the Procfile
 
